@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexos-workstation"
+version = "0.1.0"
+description = "Deterministic foundation for the NEXOS Linux task execution layer"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+nexos = "nexos.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

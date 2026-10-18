@@ -1,0 +1,16 @@
+{
+  "selection_status": "candidate_metadata_recorded",
+  "distribution": "Ubuntu Desktop",
+  "release_family": "24.04 LTS",
+  "image_version": "24.04.5.1",
+  "architecture": "amd64",
+  "filename": "ubuntu-24.04.5.1-desktop-amd64.iso",
+  "download_url": "https://releases.ubuntu.com/24.04/ubuntu-24.04.5.1-desktop-amd64.iso",
+  "published_sha256": "4da4a0c9035da8e68a59a838674f403f0a54472c78a83b4fb7f78d03588f85a7",
+  "checksum_source": "https://releases.ubuntu.com/24.04/SHA256SUMS",
+  "checksum_signature_url": "https://releases.ubuntu.com/24.04/SHA256SUMS.gpg",
+  "metadata_checked_on": "2026-10-19",
+  "download_completed": false,
+  "download_checksum_verified": false,
+  "checksum_signature_verified": false
+}
