@@ -1,0 +1,9 @@
+# Additional runtime packages to include in the selected Ubuntu Desktop base.
+# NEXOS application packages and Ollama are separate versioned inputs.
+python3
+python3-venv
+bubblewrap
+sqlite3
+libsecret-1-0
+open-vm-tools
+open-vm-tools-desktop

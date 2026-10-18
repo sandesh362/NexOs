@@ -12,7 +12,7 @@ Describe an outcome. Review sensitive actions. Let the system execute and verify
 
 ![NEXOS product blueprint showing a Linux desktop, native assistant, local engine and bootable ISO delivery](docs/assets/nexos-overview.png)
 
-**Project stage:** architecture and documentation. The runtime, installer and ISO are planned deliverables; this repository does not yet contain a working operating system image or application. Diagrams describe the intended implementation.
+**Project stage:** early implementation. A deterministic static diagnosis CLI, scoped filesystem access, report verification, SQLite task records and a foundation Debian package now work. Ten foundation tests pass on Windows and Ubuntu WSL. The model driven agents, native desktop, Linux worker sandbox and bootable ISO remain planned milestones. Diagrams describe the intended complete system.
 
 **Current architecture decision:** Ubuntu 24.04 LTS, a native Qt desktop application, a Python background engine and Ollama, delivered together in a customized bootable ISO. This decision supersedes the earlier browser interface proposal and makes ISO delivery a release requirement. See [the decision record](docs/decisions/0001-native-desktop-and-iso.md).
 
@@ -33,7 +33,7 @@ The intended product is an Ubuntu based distribution with an integrated AI works
 - Produce a bootable ISO that can be tested and installed in a VM.
 - Evaluate task success, permission enforcement, resource usage and recovery.
 
-### Initial supported workflows
+### Planned first release workflows
 
 1. Locate a development project in folders the user has granted access to.
 2. Inspect its runtime, dependency manifest and prepared diagnostic information.
@@ -42,6 +42,27 @@ The intended product is an Ubuntu based distribution with an integrated AI works
 5. Add a Google Calendar and Meet connector once the shared execution boundary is stable.
 
 Voice input, general desktop control, autonomous package installation and broader application support are later features. The first release will demonstrate a small set of complete workflows.
+
+### Run the current foundation
+
+With Python 3.12 in Ubuntu, run these commands from the repository root:
+
+```bash
+python3 tools/run_nexos.py doctor --workspace .
+python3 tools/run_nexos.py diagnose --project examples/demo-project --output .nexos/reports --state .nexos/state.sqlite3
+python3 -m unittest discover -s tests -v
+```
+
+The current command performs static manifest inspection using a fixed plan. It creates a report, verifies its hash and source evidence, and persists the outcome. Project code and network operations are outside this checkpoint; OS sandboxing is not yet implemented. The fixture is metadata, not a running application.
+
+The first Linux package can be built and checked without installing it:
+
+```bash
+python3 tools/build_foundation_deb.py
+python3 tools/check_foundation_package.py
+```
+
+See the [build workflow](docs/build/BUILD_WORKFLOW.md) and [presentation script for 20 October](docs/presentation/NEXOS_Presentation_Script.md).
 
 ## ISO and VM delivery
 
@@ -291,7 +312,7 @@ No personal provider keys, OAuth refresh tokens, browser sessions or private pro
 
 ## Hardware and storage planning
 
-**Available development laptop:** 16 GB RAM, RTX 3050 and approximately 60 GB free on D:. Exact CPU capacity and dedicated GPU memory remain to be checked.
+**Available development laptop:** 16 GB RAM and an RTX 3050. The initial reported D drive free space was 60 GB; a 19 October environment check observed approximately 94.3 GiB free. Exact CPU capacity and dedicated GPU memory remain to be checked.
 
 ### Prototype allocation
 
@@ -304,7 +325,7 @@ VM graphics acceleration does not establish access to the host GPU for CUDA infe
 
 ### ISO build capacity
 
-The 60 GB budget supports a constrained prototype, but is tight for a VM, an extracted image filesystem, compressed copies, model downloads and release artifacts together. Plan roughly **100 to 120 GB of free build workspace** for a comfortable image build cycle, or use a separate Linux builder and copy back only the final artifacts. This is an engineering allowance to validate with measured disk usage, not a mandatory hardware purchase.
+The initial 60 GB budget supported a constrained prototype; the latest approximately 94 GiB free is closer to an image build allowance. A VM, extracted filesystem, compressed copies, models and release artifacts still compete for space. Plan roughly **100 to 120 GB of free build workspace** for a comfortable image build cycle, or use a separate Linux builder and copy back only the final artifacts. This is an engineering allowance to validate with measured disk usage, not a mandatory hardware purchase.
 
 Core ISO sizing may be around 5 to 8 GB; a model bundled demo could be around 7 to 12 GB. These are preliminary estimates dependent on base image, Qt libraries, packages and model choice. Installed disk capacity and VM RAM require separate measurement. No download size or minimum hardware specification is final until the built image is tested.
 
@@ -350,23 +371,33 @@ CPU, RAM, disk and hypervisor measurements determine the published requirements.
 
 ## Repository layout
 
-Current documentation and authoring tools:
+Current foundation, documentation and authoring tools:
 
 ```text
 README.md
+pyproject.toml
+src/nexos/                                 Static diagnosis CLI and filesystem capabilities
+tests/test_foundation.py                   Ten foundation tests
+examples/demo-project/                     Static manifest fixture
+image/                                    Base metadata and image preparation inputs
 docs/
   assets/                                  Original diagrams in PNG and SVG
   decisions/0001-native-desktop-and-iso.md   Current desktop and delivery decision
+  build/BUILD_WORKFLOW.md                   Current checkpoint and next build gates
+  presentation/NEXOS_Presentation_Script.md  Proposal speech and faculty questions
   NEXOS_Architecture_and_Build_Plan.md       Earlier detailed architecture reference
 output/pdf/
   NEXOS_Architecture_and_Build_Plan.pdf      Earlier architecture PDF
 tools/
+  run_nexos.py                              Local source entry point
+  build_foundation_deb.py                    Linux foundation package builder
+  check_foundation_package.py               Extracted package smoke test
   build_readme_diagrams.mjs                 Diagram source and rendering
   build_architecture_pdf.py                 Earlier report authoring tool
   verify_architecture_pdf.py                Earlier report verification tool
 ```
 
-Planned runtime and distribution structure, to be created during implementation:
+Planned expansion of the runtime and distribution structure:
 
 ```text
 apps/desktop/                 PySide6 application and QML views
@@ -387,11 +418,13 @@ benchmarks/                   Fixtures, oracles and evaluation runner
 tests/                        Unit, integration and VM validation
 ```
 
-The planned directories and command names above are architectural conventions, not implemented features. Installation and ISO build commands will be documented once they exist and have been tested.
+The expanded directories above are architectural conventions. The current flat `src/nexos` foundation and commands are described in the quick start. Full service installation and ISO assembly commands will be documented once implemented and tested.
 
 ## Documentation and design decisions
 
 - [Current native desktop and ISO decision](docs/decisions/0001-native-desktop-and-iso.md)
+- [Presentation script and faculty questions](docs/presentation/NEXOS_Presentation_Script.md)
+- [Current build workflow](docs/build/BUILD_WORKFLOW.md)
 - [Earlier detailed architecture document](docs/NEXOS_Architecture_and_Build_Plan.md)
 - [Earlier architecture PDF](output/pdf/NEXOS_Architecture_and_Build_Plan.pdf)
 - [Overview vector artwork](docs/assets/nexos-overview.svg)
@@ -423,4 +456,4 @@ Use concise, reproducible issue descriptions and changes with evidence appropria
 - [SQLite FTS5](https://www.sqlite.org/fts5.html)
 - [Google Calendar event insertion](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert)
 
-Architecture updated 18 October 2026. Platform facts are grounded in the linked primary documentation; sizing and project milestones are proposed engineering decisions awaiting implementation measurements.
+Implementation checkpoint updated 19 October 2026. Platform facts are grounded in the linked primary documentation; sizing and project milestones are proposed engineering decisions awaiting implementation measurements. Foundation test results do not establish full agent or ISO readiness.

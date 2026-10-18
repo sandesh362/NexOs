@@ -1,0 +1,5 @@
+# Builder dependencies, not a request to install packages on the Windows host.
+# Cubic is configured separately from its documented upstream repository.
+dpkg-dev
+squashfs-tools
+xorriso
