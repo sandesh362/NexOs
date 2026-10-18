@@ -1,5 +1,7 @@
 # NEXOS Architecture and Build Plan
 
+> Architecture update on 18 October 2026: the [current README](../README.md) and [native desktop and ISO decision](decisions/0001-native-desktop-and-iso.md) supersede this version's browser UI, local HTTP API, optional ISO scope and image build capacity recommendations. The original PDF is retained as an earlier architecture reference.
+
 ## An AI assisted Linux desktop with secure task execution
 
 Architecture version 1.0 · 18 October 2026
