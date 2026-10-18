@@ -1,0 +1,94 @@
+[
+  {
+    "title": "NEXOS Architecture and Build Plan",
+    "page": 1
+  },
+  {
+    "title": "1 Project definition and academic contribution",
+    "page": 2
+  },
+  {
+    "title": "2 Refinements to the existing project documents",
+    "page": 3
+  },
+  {
+    "title": "3 Scope and observable outcomes",
+    "page": 4
+  },
+  {
+    "title": "4 Logical architecture",
+    "page": 5
+  },
+  {
+    "title": "5 Deployment and process boundaries",
+    "page": 6
+  },
+  {
+    "title": "6 Technology choices and module responsibilities",
+    "page": 7
+  },
+  {
+    "title": "7 Task lifecycle and structured planning",
+    "page": 8
+  },
+  {
+    "title": "8 Agents and the application scheduler",
+    "page": 9
+  },
+  {
+    "title": "9 Linux tools and safe execution",
+    "page": 10
+  },
+  {
+    "title": "10 Your Google Meet example",
+    "page": 11
+  },
+  {
+    "title": "11 Memory and model routing",
+    "page": 12
+  },
+  {
+    "title": "12 Permission model and threat boundary",
+    "page": 13
+  },
+  {
+    "title": "13 Isolation audit and failure handling",
+    "page": 14
+  },
+  {
+    "title": "14 Data contracts and project layout",
+    "page": 15
+  },
+  {
+    "title": "15 Your laptop and storage budget",
+    "page": 16
+  },
+  {
+    "title": "16 Model sizing costs and offline behavior",
+    "page": 17
+  },
+  {
+    "title": "17 Implementation roadmap with completion gates",
+    "page": 18
+  },
+  {
+    "title": "18 Evaluation that supports the project claims",
+    "page": 19
+  },
+  {
+    "title": "19 Verification rules and essential test cases",
+    "page": 20
+  },
+  {
+    "title": "20 Packaging demonstration and completion criteria",
+    "page": 21
+  },
+  {
+    "title": "21 Revised project abstract",
+    "page": 22
+  },
+  {
+    "title": "22 References and source traceability",
+    "page": 23
+  }
+]
