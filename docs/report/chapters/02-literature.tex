@@ -1,0 +1,64 @@
+\chapter{Literature Review}
+\section{Review Method and Boundaries}
+The review focuses on primary research relevant to planning, memory, agent orchestration, computer interaction and outcome based evaluation. Papers were selected for their relationship to a workstation agent architecture, rather than for popularity or headline benchmark scores. Official project documentation is used separately for implementation details. Publication years distinguish initial preprints from later venues where this distinction matters.
+
+Each work is considered through three questions: what problem it addresses, which architectural idea is useful for NEXOS, and what additional engineering would be required in the proposed distribution. The comparisons do not treat a missing discussion in a paper as proof that a system lacks a security mechanism. Research systems, benchmark environments and production tools have different purposes and should not be ranked through unsupported binary claims.
+
+\section{AIOS and Shared Agent Services}
+AIOS introduces an architecture that separates agent applications from shared services for scheduling, context, memory, storage and access control. The paper first appeared in 2024 and its revised version was published at COLM 2025 \cite{aios}. Its use of operating system abstractions is relevant to the organization of multiple agent workloads.
+
+NEXOS adopts the design lesson that resource management should be centralized rather than duplicated by every specialist. A shared engine can limit model concurrency and coordinate tool use. The proposed NEXOS service remains a user space process above Ubuntu. This project does not implement the AIOS kernel or infer that the word kernel in an agent architecture means a replacement for the Linux kernel. Local permissions, desktop integration and distribution testing require project specific implementations.
+
+\section{MemGPT and Context Management}
+MemGPT addresses limited model context through a hierarchy that moves information between active context and longer term storage \cite{memgpt}. It applies an operating system analogy to context management and evaluates extended document analysis and conversations.
+
+The relevant lesson is that the entire task history need not be inserted into every model request. NEXOS distinguishes active task context, historical execution records, searchable project material and reusable procedures. These categories are design roles, not a requirement for four separate database products. Retrieval must retain source identity and respect current access grants. A remembered instruction does not become a new permission merely because it was retrieved successfully.
+
+\section{OS Copilot and General Computer Agents}
+OS-Copilot presents a framework for agents that interact with operating system elements including files, terminals, applications and web resources. Its FRIDAY agent explores self improvement and skill accumulation \cite{oscopilot}. The work illustrates the breadth of tasks that computer agents may attempt.
+
+For NEXOS, the useful idea is a separation between planning and task specific execution. The prototype begins with a smaller adapter set so that behavior can be tested precisely. Automatically generated executable skills would increase both flexibility and the review burden; they are therefore an extension, with registration and testing required before reuse. The comparison concerns project scope and evaluation strategy, rather than a claim that OS-Copilot has no protections.
+
+\section{ReAct and Iterative Tool Use}
+ReAct studies interleaving reasoning and actions to support interaction with external information and environments. Its initial preprint appeared in 2022 and the camera ready version corresponds to ICLR 2023 \cite{react}. The practical implication is that a plan may need to respond to observations instead of assuming every fact in advance.
+
+NEXOS uses bounded observation and replanning as a proposed control pattern. The model receives concise tool results and may propose a revised plan within the original task scope. A revised action is schema checked and authorized again. The interface presents concise decisions, action summaries and evidence; it does not require exposing private model reasoning traces to establish correctness.
+
+\section{Reflexion and Experience Based Improvement}
+Reflexion uses linguistic feedback and episodic memory to improve subsequent attempts without updating model weights \cite{reflexion}. It is relevant to recording why a workflow failed and which correction helped.
+
+NEXOS can later store reviewed failure summaries and successful procedure templates. Such summaries remain advisory. A prior success may depend on a different project version, operating system image or account state, so a saved procedure must still validate its inputs and permissions. An invalid or adversarial observation must not be promoted into a trusted reusable rule. This limitation motivates provenance and review of procedural memory.
+
+\section{AutoGen and Specialist Collaboration}
+AutoGen explores applications assembled through conversations among configurable agents \cite{autogen}. It provides evidence that different roles can be organized around an application workflow.
+
+NEXOS uses specialist roles for planning, file operations, diagnosis and productivity tasks. These are logical responsibilities that may share one model and one process. The selected implementation is a project owned state machine rather than an assumption that each role requires a separately resident model. This reduces resource pressure on a 16 GB laptop and keeps authority checks in a single, inspectable execution path.
+
+\section{Cradle and Visual Computer Control}
+Cradle investigates general computer control through a visual interaction framework \cite{cradle}. This direction is relevant when an application has no suitable API.
+
+Visual automation introduces uncertainty in target identification, changing layouts and intermediate application state. NEXOS therefore prioritizes typed filesystem and service connectors for its initial tasks. A future visual adapter would need explicit application scope, evidence capture, action limits and a reliable success check. A screenshot showing a button press would not, by itself, prove the intended external operation was completed.
+
+\section{OSWorld and Execution Based Evaluation}
+OSWorld provides real computer tasks with initial state setup and execution based evaluation across application workflows \cite{osworld}. It demonstrates the importance of checking the resulting environment rather than relying on an agent's description of its own performance.
+
+NEXOS adopts this evaluation principle for a smaller local suite. Each fixture specifies initial files, an allowed resource set, a task and an outcome oracle. A report generation task is checked by inspecting the artifact and its source evidence. A calendar task is checked by reading the returned event state. Results from OSWorld cannot be used as NEXOS performance numbers because the tasks, models and environments differ.
+
+\section{Comparative Synthesis}
+\begin{table}[htbp]\centering\small
+\caption{Research themes and their relevance to NEXOS}
+\begin{tabularx}{\textwidth}{P{25mm}Y Y}
+\toprule\textbf{Work} & \textbf{Primary theme} & \textbf{NEXOS design implication}\\\midrule
+AIOS & Shared services for agent workloads & Central model queue and task resource control\\
+MemGPT & Hierarchical context management & Scoped retrieval and durable task history\\
+OS-Copilot & General computer agent framework & Separate planning from registered execution tools\\
+ReAct & Iterative reasoning and action & Bounded observation and plan revision\\
+Reflexion & Feedback stored as experience & Reviewed procedure and failure summaries\\
+AutoGen & Multi agent collaboration & Explicit specialist responsibilities\\
+Cradle & Visual computer interaction & Later, restricted visual adapters\\
+OSWorld & Execution based task evaluation & Independent postcondition oracles\\\bottomrule
+\end{tabularx}\end{table}
+
+The engineering opportunity is a coherent and measurable implementation for a constrained workstation. NEXOS combines a native Linux interface, local inference options, explicit adapter authority, persistent execution records and ISO delivery. This is a project integration focus; it is not evidence of an unoccupied research field or proof of superiority over the reviewed systems.
+
+Planning quality, tool correctness and permission enforcement are distinct properties. A task can fail because a model chooses the wrong sequence even when the broker is correct. Conversely, a task may appear successful while violating its resource boundary. The experimental design must report both outcome quality and boundary behavior.

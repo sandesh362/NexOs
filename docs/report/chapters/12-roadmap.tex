@@ -1,0 +1,59 @@
+\chapter{Development Roadmap and Conclusion}
+\section{Phased Methodology}
+The project uses staged implementation with an acceptance gate after each major layer. A deterministic reference workflow precedes model integration. Linux isolation precedes broader execution. Native interface and service integration precede release packaging. Image prototyping can proceed in parallel with software development once its inputs are qualified, but final release depends on both paths.
+
+The following sixteen week plan is a relative planning baseline. It is not a confirmed academic deadline. The team should map it to the department calendar and revise estimates after the first Linux and model integration tasks.
+
+\begin{table}[htbp]\centering\small
+\caption{Proposed development phases and completion gates}
+\begin{tabularx}{\textwidth}{P{19mm}Y Y}
+\toprule\textbf{Weeks} & \textbf{Main work} & \textbf{Completion gate}\\\midrule
+1 to 2 & Foundation contracts, fixtures and static workflow & Deterministic tests and evidence\\
+3 to 4 & Broker, Linux profiles and resource limits & Boundary tests on target Linux\\
+5 to 6 & Ollama gateway and structured planning & Valid plans and measured model settings\\
+7 to 8 & Scheduling, cancellation and recovery & Fault injection and reconciliation\\
+9 to 10 & Native Qt interface and user service & Complete desktop workflow\\
+11 to 12 & Scoped retrieval and calendar connector & Account and approval tests\\
+13 to 14 & Packages and ISO integration & Clean live and installed guest\\
+15 to 16 & Evaluation, corrections and report finalization & Reproducible evidence and limitations\\\bottomrule
+\end{tabularx}\end{table}
+
+\section{Team Workstreams}
+Four workstreams fit the four member team: execution and permissions; model integration and memory; native interface and workflows; and packaging, evaluation and documentation. These are proposed responsibilities, not claims about individual contributions already completed. Members should rotate review responsibilities so that critical adapters and verifiers are inspected by someone other than their original author.
+
+Shared contracts should be agreed before parallel implementation. The interface and engine need a stable message schema; the scheduler and adapters need consistent failure semantics; the evaluator needs fixture reset rules. A weekly integration checkpoint should run the supported workflow from a clean checkout and record unresolved dependencies.
+
+\section{Risk Register}
+\begin{longtable}{P{34mm}P{53mm}P{51mm}}
+\caption{Project risks and mitigation actions}\\
+\toprule\textbf{Risk} & \textbf{Potential consequence} & \textbf{Mitigation}\\\midrule\endfirsthead
+\toprule\textbf{Risk} & \textbf{Potential consequence} & \textbf{Mitigation}\\\midrule\endhead
+Model memory pressure & Slow or unresponsive guest & Small measured model, bounded context and serial inference\\
+Invalid model plans & Failed or unsafe proposals & Registry and schema checks before dispatch\\
+Incomplete sandbox profile & Access beyond intended resources & Fail closed preflight and direct denial tests\\
+Insufficient build storage & Interrupted image creation & Track temporary use and limit snapshots\\
+External API changes & Connector failure & Isolated adapter and recorded API behavior\\
+Ambiguous remote timeout & Duplicate or unknown event & Stable request identity and reconciliation\\
+Overextended scope & Incomplete final integration & Prioritize a few end to end workflows\\
+Unqualified packaging & Works only on developer machine & Clean guest install and reboot tests\\
+Misstated results & Invalid academic conclusions & Separate implemented, proposed and measured claims\\\bottomrule
+\end{longtable}
+
+\section{Prioritized Extensions}
+The most useful near term additions are action previews, reversible file workflows, saved routines and searchable execution evidence. These features improve control and reuse without requiring unrestricted automation. Saved routines should reference reviewed templates and current grants. A schedule triggers a task under a defined policy; it should not preserve a broad authorization indefinitely.
+
+Semantic retrieval can follow reliable keyword search, with evaluation of relevance, provenance and revocation. Voice and multilingual input can broaden accessibility once the text workflow is stable. Speech recognition introduces its own ambiguity, so sensitive names, destinations and times still need clear confirmation in the interface.
+
+Later extensions include additional application connectors, a reviewed plugin system, bounded visual automation and optional remote model providers. A plugin system requires versioned contracts, dependency management, isolation and a qualification process. More autonomy should be introduced only when the relevant operations have adequate verification and recovery behavior.
+
+\section{Expected Outcomes}
+The intended final outcomes are a native assistant, a local execution engine, a qualified set of adapters, a persistent evidence store, an evaluated task suite and a bootable ISO. The final report should include measured results for the exact release candidate and document unsupported cases. The present foundation establishes only the first deterministic workflow and its package checkpoint.
+
+The project is valuable if a reviewer can reproduce a supported request, observe how authority is checked, inspect the resulting evidence and repeat the workflow from a clean installation. This is a stronger completion criterion than a demonstration that succeeds once under a developer's prepared session.
+
+\section{Conclusion}
+NEXOS proposes an AI assisted Linux environment that turns selected user requests into controlled and verifiable workstation actions. Its architecture combines a native Qt interface, a Python task engine, local inference, explicit capabilities, registered tools, durable records and independent postcondition checks. Ubuntu provides the established operating system foundation, allowing the project to concentrate on agent behavior and distribution integration.
+
+The implemented foundation demonstrates static manifest inspection, scoped report creation, evidence checks and task persistence, with ten passing tests in the recorded Windows and Ubuntu WSL environments. A Debian foundation archive has also been built and checked. These results support continued implementation but do not establish complete agent security, model accuracy or ISO readiness.
+
+The next engineering milestones are the Linux execution boundary, model gateway, native desktop and clean package integration. Evaluation and image qualification will determine the final supported scope. By keeping claims tied to evidence, the project can deliver a credible and reproducible major project rather than relying on the appearance of broad automation.

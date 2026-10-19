@@ -1,0 +1,37 @@
+\chapter{Introduction}
+\section{Project Context}
+Workstation tasks often span several applications and require a sequence of small decisions. A developer may locate a project, inspect its manifest, identify a runtime requirement, examine prepared service information and assemble a report. A student organizing a review meeting may collect attendees, select a time, create an event and confirm that a meeting link exists. Existing operating systems provide the mechanisms for these actions, but users must coordinate them through interfaces, commands and application specific knowledge.
+
+Language models offer a way to express the intended outcome in ordinary language. However, producing a plausible explanation is different from safely changing files or creating an external event. An agent must select the right resources, interpret the request, obey its granted authority, handle failures and determine whether the requested outcome actually occurred. These requirements motivate NEXOS: an integrated Linux environment in which selected automation workflows are visible, bounded and verifiable.
+
+NEXOS is an Ubuntu based distribution with a native assistant and a local execution service. Ubuntu supplies the operating system substrate; NEXOS supplies the automation layer and its integration. The term \emph{agentic operating system} describes the intended user experience and orchestration layer. It does not imply a newly written kernel or a replacement for Linux process scheduling.
+
+\section{Problem Definition}
+The central engineering problem is to translate a user request into a sequence of authorized operations and to establish, using evidence, whether those operations achieved the requested state. Natural language may omit a destination, timezone, project identity or overwrite preference. A retrieved document may contain misleading instructions. A model may select an unsupported tool or produce invalid arguments. A tool may time out after partially completing an operation. A polished final answer alone cannot resolve these conditions.
+
+The problem is therefore defined as follows: given an intent, a declared set of resources and a finite execution budget, construct and execute a valid plan through registered adapters, persist its state and verify its postconditions without exceeding granted capabilities. When the goal cannot be completed, the system must return a specific incomplete or failed outcome and preserve enough evidence for investigation.
+
+\section{Motivation and Intended Users}
+The initial users are students and developers working on small local projects. These users benefit from a consistent workflow for inspecting project metadata and generating a report. This starting point is intentionally narrow: source manifests can be read without running the project, outputs can be placed in a known directory, and correctness can be checked against explicit fixtures.
+
+The longer term motivation is to make routine workstation actions easier to request and review. A useful assistant should reduce repetitive coordination while leaving the user able to understand the proposed effect. Action previews, progress updates and evidence links are therefore part of the product design, rather than decorative interface additions.
+
+No general claim is made that existing assistants cannot act or that conventional Linux automation lacks verification. Scripts, service managers, configuration tools and modern agents already automate substantial work. NEXOS investigates a particular combination of local deployment, a native interface, constrained adapters and outcome checks in a reproducible student project.
+
+\section{Objectives and Contributions}
+The primary objectives are to:
+\begin{enumerate}
+\item provide a native interface for requesting and inspecting bounded tasks;
+\item validate model proposals against a finite tool registry and explicit schemas;
+\item enforce per task resource permissions before dispatching work;
+\item persist task progress and distinguish execution from verification;
+\item integrate the software into installable packages and a bootable Ubuntu ISO;
+\item evaluate functional behavior, adverse inputs, recovery and resource use.
+\end{enumerate}
+
+The intended contribution is an engineered prototype and its evaluation evidence. It combines known techniques rather than claiming a new foundational model, a novel Linux kernel or a universal security solution. A successful final project will show a complete path from request to checked outcome on a declared set of tasks and will document the limits of that path.
+
+\section{Scope and Report Organization}
+The first workflow inspects Python and Node.js project manifests and creates a verified report. Subsequent workflows add selected file operations, named user service inspection and a Google Calendar connector. Voice interaction, broad visual desktop control and larger plugin ecosystems are extension topics. Arbitrary root commands, unattended financial transactions and unrestricted background monitoring are outside the initial scope.
+
+The report first reviews relevant research and defines requirements. It then develops the architecture, execution model, security boundary, data design and user interface. Later chapters describe the implemented foundation, packaging approach, evaluation protocol and development roadmap. Appendices provide concrete interface examples, test fixtures and release criteria. Planned interfaces and algorithms are specifications until an implementation and corresponding test evidence are available.

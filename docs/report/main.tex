@@ -1,0 +1,81 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage[left=32mm,right=25mm,top=25mm,bottom=25mm,headheight=16pt]{geometry}
+\usepackage{setspace,microtype,graphicx,pdfpages,float,placeins}
+\usepackage{booktabs,longtable,tabularx,array,multirow}
+\usepackage{amsmath,enumitem,xcolor,listings,titlesec,fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks,bookmarksnumbered,pdfpagelabels]{hyperref}
+\usepackage{bookmark}
+\usepackage[font=small,labelfont=bf,skip=8pt]{caption}
+\renewcommand{\bibname}{References}
+\hypersetup{pdftitle={NEXOS AI Assisted Linux Distribution Project Report},pdfauthor={NEXOS Project Team},pdfsubject={Major Project I architecture implementation and evaluation plan}}
+\graphicspath{{images/}}
+\onehalfspacing
+\setlength{\parindent}{1.2em}
+\setlength{\parskip}{4pt}
+\setlength{\emergencystretch}{2em}
+\widowpenalty=10000
+\clubpenalty=10000
+\raggedbottom
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{2}
+\setlist{itemsep=3pt,topsep=5pt,parsep=0pt}
+\renewcommand{\arraystretch}{1.25}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\titleformat{\chapter}[display]{\normalfont\bfseries\Large}{CHAPTER \thechapter}{9pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-8pt}{22pt}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.7em}{}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small NEXOS}
+\fancyhead[R]{\small Major Project I}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+\definecolor{navy}{HTML}{17324D}
+\definecolor{pale}{HTML}{EDF2F6}
+\definecolor{ink}{HTML}{202A34}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,keepspaces=true,showstringspaces=false,frame=single,rulecolor=\color{black!25},xleftmargin=5pt,xrightmargin=5pt,aboveskip=10pt,belowskip=10pt}
+\tikzset{box/.style={draw=navy,rounded corners=2pt,fill=pale,align=center,font=\small,minimum height=11mm,text width=37mm,inner sep=5pt},flow/.style={-{Latex[length=2mm]},thick,draw=navy},labeltext/.style={font=\scriptsize,fill=white,inner sep=2pt}}
+\newcommand{\frontchapter}[1]{\chapter*{#1}\phantomsection\addcontentsline{toc}{chapter}{#1}}
+\newcommand{\reportfigure}[4]{\begin{figure}[htbp]\centering\includegraphics[width=#2\textwidth]{#1}\caption{#3}\label{#4}\end{figure}}
+\begin{document}
+\hypersetup{pageanchor=false}
+% The first three pages are fixed exports from the supplied DOCX.
+% A missing export deliberately stops the final build.
+\includepdf[pages=1-3,fitpaper=true,pagecommand={}]{source/first-three-pages.pdf}
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+\input{chapters/frontmatter}
+\tableofcontents
+\clearpage
+\phantomsection\addcontentsline{toc}{chapter}{List of Figures}\listoffigures
+\clearpage
+\phantomsection\addcontentsline{toc}{chapter}{List of Tables}\listoftables
+\clearpage
+\pagenumbering{arabic}
+\input{chapters/01-introduction}
+\input{chapters/02-literature}
+\input{chapters/03-requirements}
+\input{chapters/04-architecture}
+\input{chapters/05-execution}
+\input{chapters/06-security}
+\input{chapters/07-data}
+\input{chapters/08-interface}
+\input{chapters/09-implementation}
+\input{chapters/10-packaging}
+\input{chapters/11-evaluation}
+\input{chapters/12-roadmap}
+\clearpage
+\phantomsection\addcontentsline{toc}{chapter}{References}
+\begin{singlespace}\input{references}\end{singlespace}
+\appendix
+\input{chapters/appendices}
+\end{document}

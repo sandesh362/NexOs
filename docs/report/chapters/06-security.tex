@@ -1,0 +1,60 @@
+\chapter{Security and Permission Design}
+\section{Threat Model}
+The main threats considered are malicious instructions embedded in project content, malformed model output, resource access outside the task scope, accidental overwrite, unauthorized network access, stale approvals and misleading success claims. The design also considers oversized inputs, runaway processes, credential leakage and duplicate remote writes after a timeout.
+
+The prototype assumes a trustworthy host kernel, administrator and NEXOS installation. It does not claim to defeat a compromised root account or all attacks by an adversarial process already running as the same desktop user. Process separation alone does not create a strong same user security boundary. These assumptions must be stated so that test results are interpreted within a defined scope.
+
+\section{Capabilities and Action Policy}
+A capability identifies a permitted operation over a specific resource under explicit constraints. For example, a task may read selected manifests under one project root and create a new report under one output root. It does not thereby gain access to the entire home directory, cloud credentials or arbitrary shell execution.
+
+The proposed authorization predicate is:
+\begin{equation}
+\begin{aligned}
+\operatorname{allow}(a,C)={}&\operatorname{registered}(a)\land\operatorname{valid}(a)\\
+&\land\operatorname{inScope}(a,C)\land\operatorname{policyOK}(a)\\
+&\land\operatorname{grantValid}(a).
+\end{aligned}
+\end{equation}
+Every term is checked by deterministic code. A model explanation cannot substitute for a missing term. Capabilities are narrowed to the tool, resource and lifetime needed for the task, and the adapter receives the resolved action rather than an unconstrained command string.
+
+\begin{table}[htbp]\centering\small
+\caption{Proposed action categories and default handling}
+\begin{tabularx}{\textwidth}{P{18mm}Y Y}
+\toprule\textbf{Class} & \textbf{Example} & \textbf{Default handling}\\\midrule
+T0 & Explain an already available result & No new resource access\\
+T1 & Read granted manifests; create a requested new report & Execute within the task's existing grants\\
+T2 & Overwrite a file; send calendar invitations & Preview concrete effect and obtain matching approval\\
+T3 & Arbitrary root command or unsupported privileged change & Deny in the initial prototype\\\bottomrule
+\end{tabularx}\end{table}
+
+These categories are project policy, not a universal security standard. A user's original request can already authorize an action when its effect is concrete and the policy permits it. Repeated approvals for the same unchanged authorized step would add friction without adding a new boundary. Materially changed destinations, recipients or destructive effects require a new decision.
+
+\section{Approval Binding and Replay Prevention}
+The planned approval record binds a task, tool version, canonical arguments, resource identities, expiry and nonce. A changed event time or file destination invalidates the earlier approval. The broker consumes a one use grant transactionally where required. The interface shows the same normalized parameters that the broker will authorize.
+
+An in process approval object should not be described as cryptographically secure merely because it contains a hash. If signed or message authenticated grants are introduced, key custody, verification and replay behavior must be specified and tested. The current foundation has scoped file access but no cryptographic grant system.
+
+\section{Filesystem Boundary}
+The foundation validates the project and output roots, rejects unregistered filenames and checks for links in relevant paths. Manifest reads are bounded to 128 KiB and report writes to 512 KiB. New report files use exclusive creation so an existing file is not silently replaced. These checks are useful application controls for the fixed workflow.
+
+There remains a gap between path validation and use if another process can mutate the filesystem concurrently. The later Linux adapter design should use descriptor relative operations, avoid following links and validate the actual opened resource. Sandbox mounts should expose only the necessary roots. Race resistance must be tested directly; passing a static symlink test is not proof of complete resistance to concurrent path replacement.
+
+\section{Worker Isolation}
+Bubblewrap will be used to construct a restricted filesystem and namespace environment for suitable tools. A local diagnostics profile should expose required runtime libraries read only, mount the selected project read only, provide a dedicated output directory and use temporary storage for scratch data. Network access is denied for tools that do not need it. Environment variables and inherited file descriptors must be minimized.
+
+The profile must also consider process lifetime, writable locations, IPC exposure and device access. Resource limits are proposed through tested systemd settings or other verified process controls. Availability of a setting in documentation is not proof that it is enforced in the chosen user session or kernel configuration. A failed isolation preflight should stop the affected adapter instead of silently falling back to unrestricted execution.
+
+\section{Prompt Injection Handling}
+Repository files, fetched pages, tool responses and retrieved memory are data channels. Instructions contained in those sources do not supersede the user's task or grant new authority. The planner receives source labels and limited context, while the execution layer independently checks every proposed action.
+
+The current foundation does not read arbitrary project README instructions or execute package scripts, so its tests can establish that those inputs do not affect its static workflow. A model integrated system will have a larger attack surface. Its evaluation should include malicious text that asks for secret access, new destinations, tool substitution and false completion. The goal is measured resistance within the supported tasks, not a claim of absolute prompt injection immunity.
+
+\section{Secrets and Network Connectors}
+OAuth refresh tokens and optional model provider keys belong in a credential store such as the Linux Secret Service. The database stores opaque credential references. Tokens should never be inserted into model prompts, report artifacts or ordinary event logs. A connector receives the minimum account access needed for its operation and handles revocation explicitly.
+
+A browser fallback, if added later, requires a separately reviewed profile and session policy. Browser automation can expose cookies, pages and downloads that have broader effects than a single API call. It should not be treated as a generic escape hatch when a typed connector fails.
+
+\section{Auditing and Residual Risk}
+The current SQLite journal records task events but is not hash chained. A future audit chain may compute $h_i=H(h_{i-1}\Vert\operatorname{canonical}(e_i))$, where $e_i$ is an event. This can reveal changes relative to a trusted checkpoint. An attacker able to rewrite the entire database and checkpoint may recompute the chain, so local hashing alone is not strong nonrepudiation or proof of a correct action.
+
+Security evidence must include denied access tests, resource limit tests, approval mismatch tests and secret redaction checks. Residual risks include model misunderstanding within an allowed scope, adapter defects, platform vulnerabilities and external service behavior. The release report should record these limits alongside successful tests.

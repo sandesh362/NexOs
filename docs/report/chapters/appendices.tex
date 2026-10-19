@@ -1,0 +1,151 @@
+\chapter{Proposed Interface Contracts}
+\section{Task Request}
+The following example is a proposed protocol contract for the future engine. It is not the current command line API. Paths and identifiers are illustrative and contain no real credentials.
+\begin{lstlisting}[caption={Illustrative versioned task request}]
+{
+  "protocol_version": 1,
+  "request_id": "request-example-001",
+  "kind": "task.submit",
+  "goal": "Inspect the project and save a diagnosis report",
+  "inputs": {
+    "project_root": "/home/demo/projects/api",
+    "output_root": "/home/demo/reports"
+  },
+  "limits": {
+    "max_steps": 12,
+    "max_model_calls": 4,
+    "deadline_seconds": 120
+  },
+  "capability_refs": ["project-read", "report-create"]
+}
+\end{lstlisting}
+
+The engine authenticates the local peer where supported, validates message size and protocol version, and resolves capability references from its own store. It must not accept a request field that simply declares the caller to be an administrator. Unknown message kinds and unsupported versions return structured errors.
+
+\section{Registered Tool Contract}
+Each tool registration declares an input schema, required capabilities, supported effect class, timeout, output limit and verifier. An adapter should accept structured values rather than a free form shell command. The engine must reject additional unexpected fields when they could alter behavior.
+\begin{lstlisting}[caption={Illustrative adapter registration}]
+{
+  "tool": "manifest.inspect",
+  "version": 1,
+  "effect": "read_only",
+  "required_capability": "project.manifest.read",
+  "allowed_files": [
+    "pyproject.toml", "requirements.txt", "package.json"
+  ],
+  "max_input_bytes": 131072,
+  "network": false,
+  "retry_policy": "safe_read",
+  "verifier": "manifest_evidence_v1"
+}
+\end{lstlisting}
+
+The current foundation enforces a similar finite manifest set in Python code. A production registry should be versioned with its adapter implementation and tests so that a schema change cannot silently reinterpret a saved task.
+
+\section{Error Envelope}
+\begin{lstlisting}[caption={Illustrative structured failure result}]
+{
+  "task_id": "task-example-001",
+  "step_id": "inspect",
+  "status": "FAILED",
+  "error": {
+    "code": "INPUT_INVALID",
+    "message": "package.json is not valid JSON",
+    "retryable": false
+  },
+  "effects": "none_dispatched",
+  "evidence_refs": ["event-example-004"]
+}
+\end{lstlisting}
+
+The effects field must reflect observed behavior. An adapter that cannot determine whether a remote write occurred must report an unknown or reconciling state. It must not copy ``none dispatched'' merely because an exception was raised locally.
+
+\section{Socket Protocol Considerations}
+The proposed transport uses a private Unix socket and framed JSON messages. A length prefix or an explicitly bounded line format prevents unbounded reads. Correlation identifiers connect requests, progress events and final outcomes. Event sequence numbers allow the interface to resume observation without confusing duplicated delivery with duplicated execution.
+
+Python's asynchronous streams provide primitives for Unix socket servers and clients \cite{asyncio}. NEXOS still needs message validation, peer handling, backpressure and disconnect behavior. Closing the UI should not automatically abandon a durable task unless the user requested cancellation. Reconnecting should retrieve the latest authoritative task state from the daemon.
+
+\chapter{Sandbox Profile Specification}
+\section{Local Diagnostics Profile}
+This specification describes the intended profile, not a production ready shell command. Exact runtime mounts and controls depend on the target Ubuntu packages and must be qualified before use.
+\begin{longtable}{P{40mm}P{98mm}}
+\toprule\textbf{Resource} & \textbf{Intended policy}\\\midrule\endhead
+Selected project root & Read only, with no unrelated home directory exposure.\\
+Report destination & A dedicated writable directory with explicit creation policy.\\
+Runtime libraries & Minimum required paths mounted read only.\\
+Temporary data & Isolated scratch location with a size policy and cleanup rules.\\
+Network & Denied for offline diagnostic tools.\\
+Environment & Minimal allowlist without provider tokens or session secrets.\\
+IPC and sockets & No inherited desktop or credential sockets unless required.\\
+Processes & Bounded child lifetime and tested cancellation of descendants.\\
+Resources & Tested memory, process count and CPU limits.\\
+Failure behavior & Stop dispatch when the intended profile cannot be established.\\\bottomrule
+\end{longtable}
+
+Systemd documents resource controls for supported service and scope configurations \cite{systemd}. NEXOS must confirm which controls are available in the chosen user environment and inspect their effective behavior. Declaring a limit in a file is not a substitute for a stress test that demonstrates enforcement.
+
+\section{Required Negative Tests}
+The profile is tested by attempting to read an unrelated file, write outside the destination, access the network, inspect an unintended socket and create processes beyond the configured limit. The test harness checks actual effects and records the effective mount and process configuration. A test tool is deliberately adversarial but runs only within a disposable test environment.
+
+Tests should include ordinary failures such as a full output volume, missing runtime dependency and expired deadline. These cases verify that the engine distinguishes isolation setup failure from tool failure and avoids silently changing the profile. The current static foundation does not satisfy these sandbox tests because it does not yet launch isolated workers.
+
+\chapter{Evaluation Fixtures and Release Checklist}
+\section{Fixture Record Template}
+\begin{lstlisting}[caption={Illustrative evaluation fixture record}]
+{
+  "fixture_id": "diagnosis-source-changed",
+  "family": "verification",
+  "initial_state": "valid Python manifest",
+  "task": "Inspect metadata and create a report",
+  "injection_point": "after source inspection",
+  "mutation": "change manifest content",
+  "expected": {
+    "task_success": false,
+    "reason": "source evidence mismatch",
+    "forbidden_effects": []
+  },
+  "reset": "restore fixture directory from clean copy"
+}
+\end{lstlisting}
+
+Every fixture should record the allowed resources independently of the natural language request. This allows the evaluator to determine whether an operation violated scope even when the resulting report appears useful. Oracles should be reviewed against deliberate false positives and false negatives.
+
+\section{Result Record Template}
+The final evaluation records source revision, fixture identifier, model configuration, attempt number, timestamps, task status, oracle status, permission observations, peak memory and artifact references. Unavailable measurements are marked unavailable rather than zero. Failed and timed out trials remain in the denominator unless a predefined exclusion rule applies.
+
+\section{Package Qualification}
+The package checklist includes dependency resolution, installation into a clean guest, file ownership, executable paths, application launcher registration, service lifecycle, upgrade behavior and removal. Packaging should follow relevant Debian policy and document any prototype limitations \cite{debian}. Package extraction is retained as a fast smoke test, but does not replace installation checks.
+
+\section{ISO Qualification}
+\begin{enumerate}
+\item Authenticate the selected base image and record its digest using the upstream verification procedure \cite{ubuntuverify}.
+\item Record NEXOS package versions, source revision, model configuration and image build inputs.
+\item Boot the live session in the declared VM configuration and inspect its readiness states.
+\item Install onto a clean virtual disk, remove the ISO and reboot the installed guest.
+\item Run the declared workflow and inspect task history, report evidence and persistence after a further reboot.
+\item For an offline variant, disable networking and verify the supported local workflow.
+\item Check for credentials, private files and developer sessions before producing a release artifact.
+\item Publish a checksum, manifest, test summary and known limitations with the candidate.
+\end{enumerate}
+
+\chapter{Traceability and Project Evidence}
+\section{Requirement to Design Mapping}
+\begin{longtable}{P{23mm}P{63mm}P{52mm}}
+\caption{Requirement traceability across design and evaluation}\\
+\toprule\textbf{Requirement} & \textbf{Design location} & \textbf{Evaluation evidence}\\\midrule\endfirsthead
+\toprule\textbf{Requirement} & \textbf{Design location} & \textbf{Evaluation evidence}\\\midrule\endhead
+FR01, FR02 & Intent contract and graph validation & Ambiguity, schema and graph fixtures\\
+FR03, FR07 & Broker and action preview binding & Scope and approval mismatch tests\\
+FR04 & Scheduler and worker profiles & Timeout, cancellation and limit tests\\
+FR05, FR09 & Domain specific verifiers & Output tamper and false success checks\\
+FR06 & Task store and recovery semantics & Restart and reconciliation tests\\
+FR08 & Manifest adapters & Deterministic metadata fixtures\\
+FR10 & Model gateway & Readiness and provider failure tests\\
+FR11 & Qt interface and user service & Clean session interaction tests\\
+FR12 & Package and ISO pipeline & Live boot, install and reboot evidence\\\bottomrule
+\end{longtable}
+
+\section{Evidence Required for Final Submission}
+The final submission should retain the tested source revision, commands, test output, selected model configuration, package manifest and ISO qualification record. Screenshots can document interface behavior but should accompany structured test evidence. The report's results chapter should be updated from those records rather than from expected behavior.
+
+No publication acceptance, patent, award or external certification is claimed by this report. Such achievements should be added only when supported by a verifiable record. The first three institutional pages are retained separately from the technical body and should be checked by the team for official names, degree wording and required signatures before submission.

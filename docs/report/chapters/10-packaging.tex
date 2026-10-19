@@ -1,0 +1,55 @@
+\chapter{Packaging and ISO Delivery}
+\section{Delivery Artifacts}
+The required release artifact is a customized bootable Ubuntu ISO. Application packages are the building blocks used to assemble and update that image. A prebuilt virtual machine is an optional convenience artifact produced from a tested installation. These formats have different purposes: an ISO boots installation or live media, whereas a VM export includes an installed virtual disk and configuration.
+
+The proposed Core ISO contains Ubuntu, desktop integration, the NEXOS interface and engine, an inference runtime and first run configuration. It may require a model download before AI inference is ready. An Offline Demo ISO additionally contains one tested model and prepared local fixtures after redistribution terms are checked. Neither variant makes internet dependent services operate offline.
+
+\reportfigure{nexos-iso-pipeline.png}{1}{Proposed package to ISO pipeline with clean virtual machine qualification.}{fig:iso}
+
+\section{Package Boundaries}
+The final package organization should separate the engine, native desktop and distribution integration where doing so improves upgrade and dependency management. The engine package provides task logic and the user service. The desktop package provides Qt resources and application launch metadata. Integration assets provide defaults, first run setup and the selected tool profiles. Model weights have their own size, version and licensing considerations and should not be hidden inside an undocumented application dependency.
+
+Each package needs a version, dependency specification, file manifest, license information and installation behavior. Package scripts must be narrowly scoped and should not embed developer credentials or create globally permissive access. Installation should be tested on a clean guest, including service startup, removal and a controlled upgrade from the previous supported state.
+
+\section{Base Image and Build Inputs}
+The project selects an Ubuntu 24.04 LTS desktop image for the target architecture. Before customization, the complete downloaded file is checked against its published digest, and the checksum signature is authenticated using an appropriate trusted Ubuntu signing key. Candidate metadata in a JSON file is not equivalent to a verified download.
+
+The build record includes the exact image filename and digest, package versions, NEXOS revision, model identifier and digest where applicable, customization scripts and tool versions. Changes in the upstream base should be deliberate and recorded. Reproducible inputs improve traceability even when the build has not yet achieved byte identical reproducibility.
+
+\section{Customization Workflow}
+Cubic provides a practical initial workflow for customizing Ubuntu based live images \cite{cubic}. The project should preserve package lists and overlay files outside the interactive build session so that changes are reviewable. The customized filesystem incorporates qualified NEXOS packages, desktop launchers, service units and demonstration fixtures.
+
+The image must preserve a valid inherited boot and installer structure. Repacking a filesystem into an arbitrary archive does not create a qualified bootable distribution. After image assembly, a new VM tests the live session, installer and installed system. A successful build command is only the beginning of distribution qualification.
+
+\section{Build Environment and Storage}
+The existing Ubuntu WSL environment has supported Python tests and Debian archive creation. At the recorded preflight, \texttt{dpkg-deb} and \texttt{mksquashfs} were found, while \texttt{cubic}, \texttt{xorriso} and \texttt{bwrap} were not found in its executable search path. This makes it useful for foundation work, but it has not yet been qualified as the full desktop image builder.
+
+A tested Ubuntu desktop VM is the primary fallback for Cubic and image assembly. Its build directory and virtual disk should be placed on a volume with sufficient free space. Disk planning must include temporary extraction, caches, resulting ISO and test installation, not just the final download size. Snapshots and model copies can grow unexpectedly and should be tracked explicitly.
+
+\section{Boot and Installation Qualification}
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=7mm]
+\node[box,text width=83mm] (a) {Attach release candidate ISO to a clean VM};
+\node[box,below=of a,text width=83mm] (b) {Boot live session and check declared readiness};
+\node[box,below=of b,text width=83mm] (c) {Install onto an empty virtual disk};
+\node[box,below=of c,text width=83mm] (d) {Eject ISO and reboot installed system};
+\node[box,below=of d,text width=83mm] (e) {Run supported task and verify persistent history};
+\node[box,below=of e,text width=83mm] (f) {Record evidence and publish candidate limitations};
+\draw[flow] (a)--(b);\draw[flow] (b)--(c);\draw[flow] (c)--(d);\draw[flow] (d)--(e);\draw[flow] (e)--(f);
+\end{tikzpicture}
+\caption{Proposed release qualification sequence. Booting the installer alone does not qualify the installed product.}\label{fig:boot}
+\end{figure}
+
+The first compatibility target is x86\_64 VMware Workstation with UEFI and Secure Boot disabled for the prototype. Exact host, hypervisor and virtual hardware versions must be recorded. Support for other hypervisors, Secure Boot or physical computers requires separate tests. The release must not promise operation on every VMware version or device.
+
+The installed system is rebooted after ejecting the ISO so that accidental reliance on live media is detected. Tests inspect the desktop, daemon, model readiness, granted tools and stored artifacts. An offline variant is tested with networking disconnected for its declared local tasks. Network connectors are tested separately with controlled accounts and fixtures.
+
+\section{Release Hygiene and Updates}
+Before release, the image is checked for developer tokens, shell history, private documents, cached account sessions and machine specific identifiers. A prebuilt VM requires additional sanitization because it has already completed installation and may contain user state. A release manifest records checksums, component versions, known limitations and the test environment.
+
+Updates should preserve the user's task history and selected settings through explicit migration behavior. Model updates are evaluated as changes to the system, because planning quality and resource use can change. Rollback instructions must state which state formats remain compatible; restoring an old package does not automatically reverse a database migration.
+
+\section{When ISO Work Begins}
+Software development and image input preparation can proceed now. An early boot prototype is useful after the base image and builder are qualified, even if it contains only a clearly labeled foundation package. The complete release image should be assembled after the engine, interface and service packages work on a clean Ubuntu installation.
+
+This order avoids treating packaging as a substitute for working software while still identifying boot and installer issues early. At the report checkpoint, the foundation Debian archive exists; a bootable NEXOS release ISO has not been produced.

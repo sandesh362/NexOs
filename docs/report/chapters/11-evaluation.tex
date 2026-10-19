@@ -1,0 +1,75 @@
+\chapter{Testing and Evaluation}\label{ch:evaluation}
+\section{Evaluation Questions}
+The evaluation asks whether NEXOS completes supported tasks, respects granted resources, detects incorrect outcomes and recovers predictably from interruption. It also asks whether the selected model and runtime configuration are practical on the available hardware. These questions require separate measurements; a single success percentage cannot describe all of them.
+
+The experiment must distinguish deterministic foundation behavior from model driven behavior. It must also distinguish a source checkout from an installed package and a complete ISO. A feature is accepted at the layer where it will be used, with evidence recorded for that environment.
+
+\section{Fixture Design}
+Each fixture contains a known initial state, a task description, allowed resources, expected postconditions and a reset procedure. Static diagnosis fixtures include valid Python metadata, valid Node metadata, missing manifests, malformed documents, oversized input, changed source content and destination conflicts. Permission fixtures include attempted path traversal, linked resources and unsupported tools.
+
+Later agent fixtures introduce ambiguous project names, hostile instructions in source content, unknown tools and model output that violates the schema. Connector fixtures use test accounts and controlled recipients. Release fixtures begin from an empty virtual disk so that dependencies inherited from a developer environment do not conceal packaging problems.
+
+The proposed first evaluation suite contains approximately forty task scenarios, grouped by workflow and failure mode. This is a planning target, not a completed dataset. A pilot should determine whether the scenarios are sufficiently distinct and whether each oracle is correct before the final count is frozen.
+
+\section{Metrics}
+Verified task success is defined as:
+\begin{equation}
+\operatorname{VSR}=\frac{\text{tasks satisfying all required postconditions}}{\text{attempted tasks}}.
+\end{equation}
+Permission violation rate is the fraction of evaluated attempts that produce an effect outside their granted scope. A violation counts even when the intended task also succeeds. False success rate is the fraction of tasks reported successful whose independent evaluation oracle fails.
+
+Latency should be reported as median and tail values with sample counts. Separate planning time, tool execution time and verification time when practical. Resource observations include peak resident memory, guest memory pressure, model load time and disk consumption. Human intervention counts record clarification, approval and manual repair separately.
+
+\begin{table}[htbp]\centering\small
+\caption{Planned metrics and evidence collection}
+\begin{tabularx}{\textwidth}{P{34mm}Y Y}
+\toprule\textbf{Metric} & \textbf{Collected evidence} & \textbf{Interpretation}\\\midrule
+Verified success & Oracle result and task status & Supported task completion\\
+False success & Claimed success with failed oracle & Misleading completion behavior\\
+Permission violation & Forbidden filesystem or API effects & Boundary failure\\
+Latency & Timed stages and total duration & Interactive performance\\
+Memory use & Peak process and guest observations & Hardware feasibility\\
+Recovery outcome & Crash point and reconciled state & Durable workflow behavior\\
+Installation outcome & Live, install and reboot evidence & Distribution readiness\\\bottomrule
+\end{tabularx}\end{table}
+
+\section{Baselines and Experimental Controls}
+The deterministic diagnosis CLI is a baseline for tasks already covered by its fixed plan. A manual workflow can provide a time and interaction comparison if the task and participant procedure are documented. A model based planner is evaluated using the same fixtures and allowed tool set. An optional ablation can compare verification enabled and disabled in an isolated test harness, without exposing a user workstation to unchecked actions.
+
+The experiment records the model identifier, digest or immutable version where available, quantization, context settings, generation parameters, inference runtime and tool versions. Model dependent tasks should have repeated trials because their outputs may vary. A practical initial choice is three trials per scenario, followed by more trials when variance or failures require investigation. This is a proposed procedure, not an assurance of statistical power.
+
+Task splits should prevent a held out evaluation from being tuned repeatedly after observing its answers. If prompt or adapter changes are made after failures, the report should distinguish development fixtures from the final evaluation run. Results are reported per task family as well as in aggregate to avoid hiding a weak workflow behind many easy cases.
+
+\section{Foundation Test Evidence}
+\begin{longtable}{P{17mm}P{87mm}P{34mm}}
+\caption{Recorded foundation test coverage}\\
+\toprule\textbf{Test} & \textbf{Checked behavior} & \textbf{Recorded result}\\\midrule\endfirsthead
+\toprule\textbf{Test} & \textbf{Checked behavior} & \textbf{Recorded result}\\\midrule\endhead
+F01 & Verified success and persisted transition sequence & Passed\\
+F02 & Malformed manifest produces failed status & Passed\\
+F03 & Traversal and unregistered reads are rejected & Passed\\
+F04 & Output escape and overwrite are refused & Passed\\
+F05 & README instructions and package scripts are not executed & Passed\\
+F06 & Report tampering is detected & Passed\\
+F07 & Changed source is detected during verification & Passed\\
+F08 & Oversized manifest is rejected & Passed\\
+F09 & Unknown tools, missing dependencies and cycles are rejected & Passed\\
+F10 & Symlinked manifest access is rejected & Passed\\\bottomrule
+\end{longtable}
+
+The recorded checkpoint contains ten passing tests on each of the two development environments. This is test coverage of the current implementation, not a measured 100 percent agent success rate. No model participated in those tests. The package extraction smoke test is additional evidence that the foundation launcher and fixture work from the built archive, but it does not qualify installation or the complete distribution.
+
+\section{Fault Injection and Adversarial Tests}
+Fault injection will terminate the engine at defined points and then examine recovery. Candidate points include after recording a step, after a file is created and after a remote provider accepts a write but before the response is persisted. The expected behavior is a correctly classified state with no blind duplicate operation.
+
+Security tests will attempt unauthorized file reads, unexpected writes, network use from offline profiles, stale grant reuse and substitution of approved parameters. Prompt injection tests will place hostile instructions in project documents and tool outputs. Tests should inspect the actual environment for effects; a denied message alone is insufficient if a forbidden action occurred first.
+
+\section{Acceptance Gates}
+The foundation gate requires passing functional and adverse input tests. The Linux boundary gate requires demonstrated mount, network and process limits for each enabled profile. The model gate requires valid plans and measured task behavior under the selected inference settings. The desktop gate requires visible progress, approval binding and cancellation handling. The distribution gate requires clean installation and persistent reboot checks.
+
+No numerical performance target is presented as achieved. The project may choose an acceptance threshold after a pilot establishes realistic performance, but it must publish the threshold before the final evaluation and report all exclusions. Any observed permission violation or false success requires investigation before the affected workflow is represented as qualified.
+
+\section{Threats to Validity}
+A small fixture suite may overrepresent familiar tasks. Synthetic projects may omit real world edge cases. Different hardware and model settings may change latency substantially. Manual comparisons can be biased by participant familiarity. A verifier can itself contain defects, and a local test environment may not reproduce external service failures.
+
+Mitigation includes held out scenarios, explicit reset procedures, independent oracle review, multiple trials and publication of environment details. Conclusions should remain limited to the tested scope. The report should state unresolved failures rather than removing difficult cases without explanation.

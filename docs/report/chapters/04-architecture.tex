@@ -1,0 +1,82 @@
+\chapter{System Architecture}
+\section{Architectural Principles}
+The architecture separates interpretation, authority, execution and evidence. A model interprets a request and proposes a plan. The engine validates that plan. The broker determines whether each concrete action is permitted. Registered adapters perform the work, and verifiers inspect its outcome. A component must not acquire more authority merely because its output is phrased confidently or because another agent repeats it.
+
+The system is local by default. The native interface, engine, task store, model runtime and local workers reside inside the installed NEXOS guest. A Windows host running VMware supplies virtual hardware; it is not the required backend. External services are reached only through configured connectors. The same application architecture can later run on compatible physical hardware, subject to separate driver and boot testing.
+
+\reportfigure{nexos-overview.png}{1}{NEXOS product and deployment overview. The complete system shown is the intended design.}{fig:overview}
+
+\section{Layered Component Architecture}
+Figure~\ref{fig:architecture} presents the main components and their relationships. The user interacts with a Qt application. The application sends versioned messages to the user session daemon through a private Unix domain socket. The daemon owns the task state machine, scheduling, approval records and model requests. Tool execution is routed through the broker rather than initiated directly by the interface or model.
+
+\reportfigure{nexos-architecture.png}{1}{Proposed component architecture with a local model service and controlled tool execution.}{fig:architecture}
+
+The model gateway normalizes requests and responses for the selected inference provider. The initial provider is local Ollama, with one measured model configuration. A provider substitution changes inference behavior; it must not change permissions, tool schemas or verification rules. Failure to load a model results in an explicit readiness error, while deterministic supported commands may remain available.
+
+The task store persists records and evidence references. It does not act as a transport for unrestricted executable instructions. Tool workers receive the minimum arguments and resources necessary for the selected action. An external connector receives only the credential reference and data relevant to its approved operation.
+
+\section{Module Responsibilities}
+\begin{longtable}{P{29mm}P{68mm}P{41mm}}
+\caption{Component responsibilities and authority boundaries}\\
+\toprule\textbf{Component} & \textbf{Responsibility} & \textbf{Authority constraint}\\\midrule\endfirsthead
+\toprule\textbf{Component} & \textbf{Responsibility} & \textbf{Authority constraint}\\\midrule\endhead
+Desktop UI & Task entry, previews, progress, results and history. & Cannot declare success or bypass broker decisions.\\
+Task engine & Validation, state transitions and dispatch coordination. & Dispatches registered actions only.\\
+Model gateway & Inference readiness, request limits and response normalization. & No direct filesystem mutation or tool execution.\\
+Scheduler & Dependency ordering, admission, deadlines and cancellation. & Cannot widen task capabilities.\\
+Permission broker & Resource scope, action policy and grant validation. & Denies unsupported or stale requests.\\
+Tool adapter & One documented operation with typed inputs and outputs. & Receives a constrained execution environment.\\
+Verifier & Checks required output properties against evidence. & Does not accept narrative claims as proof.\\
+State store & Tasks, attempts, grants and evidence metadata. & Excludes reusable plaintext credentials.\\
+Connector & Authorized remote API operations. & Restricted to account, operation and scope.\\\bottomrule
+\end{longtable}
+
+\section{Deployment View}
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=10mm]
+\node[box,text width=126mm] (host) {Development host: Windows laptop and VMware Workstation};
+\node[box,below=of host,text width=126mm] (guest) {NEXOS guest: Ubuntu, GNOME, Linux kernel and virtual hardware};
+\node[box,below=of guest,xshift=-45mm,text width=35mm] (ui) {Qt desktop\\User session};
+\node[box,below=of guest,text width=35mm] (engine) {nexosd\\Task engine};
+\node[box,below=of guest,xshift=45mm,text width=35mm] (model) {Ollama\\Local inference};
+\node[box,below=of engine,text width=80mm] (data) {Guest disk: SQLite, task artifacts and model files};
+\draw[flow] (host)--(guest);
+\draw[flow] (ui)--(engine);
+\draw[flow] (engine)--(model);
+\draw[flow] (engine)--(data);
+\end{tikzpicture}
+\caption{Proposed VMware deployment. Persistent application state belongs to the installed guest disk.}\label{fig:deployment}
+\end{figure}
+
+The daemon is proposed as a systemd user service so its lifecycle follows the relevant user session. Ollama uses a separate service identity and a local inference endpoint. An endpoint reachable by the user must not be exposed to the broader network by default. Local socket ownership and permissions protect ordinary cross user access; they are not a complete defense against a malicious process already running as the same desktop user.
+
+An installed VM retains state after reboot. A live ISO session usually writes to a temporary overlay and may lose state when shut down. The interface must clearly identify this condition. Credential setup and important history should be associated with an installed persistent environment or a deliberately configured persistence mechanism.
+
+\section{Data Flow and Trust Boundaries}
+The principal input flows are the user's intent, selected project data, model proposals and tool observations. The principal output flows are action previews, task events, generated artifacts and verified result summaries. Data crossing from project content or a provider response into an action request must pass schema and policy checks.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=9mm]
+\node[box,text width=46mm] (request) {User request and grants};
+\node[box,below=of request,text width=60mm] (plan) {Planner and schema validation};
+\node[box,right=13mm of plan,text width=31mm] (untrusted) {Untrusted project data and model output};
+\node[box,below=of plan,text width=60mm,fill=white,line width=1pt] (broker) {Deterministic permission boundary};
+\node[box,below=of broker,text width=60mm] (tools) {Isolated local tools or API connector};
+\node[box,below=of tools,text width=60mm] (verify) {Evidence checks and durable result};
+\draw[flow] (request)--(plan);
+\draw[flow] (untrusted)--(plan);
+\draw[flow] (plan)--(broker);
+\draw[flow] (broker)--(tools);
+\draw[flow] (tools)--(verify);
+\end{tikzpicture}
+\caption{Conceptual data flow. Untrusted content can inform a proposal but cannot grant execution authority.}\label{fig:dfd}
+\end{figure}
+
+The broker, adapter code, verifier, relevant database transitions and operating system mechanisms form the execution trusted computing base. Keeping this boundary small makes review more practical. The model is outside the authority boundary, even if it runs locally. A local model can still misunderstand a task or be influenced by hostile input.
+
+\section{Architectural Alternatives}
+A browser interface with a local HTTP service was considered earlier. The current design chooses Qt because the project goal is an integrated native workstation experience. Internal APIs remain necessary, but a public web server is not required. The selected socket transport also avoids making a local web origin part of the initial application boundary.
+
+A large distributed stack with multiple databases and message brokers is unnecessary for the first single machine prototype. SQLite and a bounded Python engine reduce installation and recovery complexity. Framework based agent orchestration can be evaluated later against the explicit state machine, but framework adoption must demonstrate a concrete benefit and preserve the same authority rules.
+
+A complete operating system written from scratch would consume the project effort in drivers, boot support and low level resource management. Reusing Ubuntu directs the work toward the research and engineering problem of agent execution. The distribution deliverable demonstrates integration of that work into an operating environment.

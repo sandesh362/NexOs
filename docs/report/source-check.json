@@ -1,0 +1,13 @@
+{
+  "tex_files": 16,
+  "main_chapters": 12,
+  "appendix_chapters": 4,
+  "references": 18,
+  "figures": 10,
+  "retained_docx_byte_identical": true,
+  "first_three_pages_exported": false,
+  "compiled_pdf_exists": false,
+  "approximate_source_word_count": 14746,
+  "errors": [],
+  "note": "Structural checks are not a TeX compile or rendered page review."
+}

@@ -1,0 +1,73 @@
+\chapter{Implementation and Current Progress}
+\section{Development Strategy}
+Implementation begins with a deterministic workflow so that the execution path can be tested before model variability is introduced. The model will later select or propose actions using the same contracts. This provides a reference behavior for diagnosis tasks and makes it easier to separate planner failures from adapter or verification failures.
+
+The current foundation is a Python package with a command line interface. It uses the standard library for JSON, TOML, SQLite, hashing and filesystem operations. Pydantic, the Qt interface and the inference gateway belong to later integration work. The package's small dependency set is intentional at this checkpoint and should not be mistaken for the dependency set of the final distribution.
+
+\section{Implemented Module Structure}
+\begin{table}[htbp]\centering\small
+\caption{Implemented foundation modules}
+\begin{tabularx}{\textwidth}{P{36mm}Y}
+\toprule\textbf{Module or helper} & \textbf{Implemented responsibility}\\\midrule
+\texttt{policy.py} & Scoped manifest reads, link checks, size limits and exclusive report creation.\\
+\texttt{plan.py} & Fixed tool registry, dependency validation and bounded plan ordering.\\
+\texttt{diagnosis.py} & Static parsing, report creation and evidence verification.\\
+\texttt{journal.py} & Task and event persistence in SQLite.\\
+\texttt{cli.py} & Diagnosis command, readiness report and structured error output.\\
+\texttt{test\_foundation.py} & Ten tests for the supported workflow and adverse inputs.\\
+Package helpers & Build a Debian archive and smoke test its extracted launcher.\\\bottomrule
+\end{tabularx}\end{table}
+
+The command line entry point accepts a project root, an output directory and a state database path. It returns a structured result including the task status, report path, report digest, findings and verification flags. The readiness command reports platform and tool availability. Tool discovery is a preflight observation; it is not proof that a complete ISO build will succeed.
+
+\section{Static Diagnosis Behavior}
+The foundation recognizes \texttt{pyproject.toml}, \texttt{requirements.txt} and \texttt{package.json}. It parses declared metadata and records a digest for each inspected source. For Python project metadata, it counts declared dependency entries. For Node metadata, it combines dependency and development dependency keys. For requirements files, it counts nonempty, noncomment entries, including directives; it does not claim that each entry names a resolved installed package.
+
+The workflow does not import project modules, run installation hooks or execute scripts. It therefore cannot establish that the application starts, that dependencies are installed or that a runtime version is compatible. Those checks require later Linux adapters and distinct evidence. The report explicitly labels its scope as static manifest inspection.
+
+\section{Verification Implementation}
+The report verifier reopens the generated file and compares its digest with the bytes produced by the report adapter. It checks the task identity and required findings, then rereads supported source manifests and compares their digests with those recorded during inspection. A changed report or source causes an error instead of success.
+
+This is independent deterministic checking of the output path within the current application, not isolation of a verifier into a separate security domain. A compromised process with equivalent authority remains outside the foundation's demonstrated protection. The distinction matters when explaining what a successful unit test proves.
+
+\section{Observed Foundation Results}
+The development checkpoint recorded on 19 October 2026 contains ten passing foundation tests on Windows with Python 3.12.14 and Ubuntu WSL with Python 3.12.3. The tests cover successful and failed task records, path escape, overwrite refusal, ignored README instructions and package scripts, oversized input, invalid plans, source changes, report tampering and symlink denial.
+
+These tests exercise a fixed workflow. They do not measure natural language task accuracy, Linux sandbox escape resistance, complete same user isolation, crash recovery of remote operations or ISO installation reliability. Those results remain to be collected using the evaluation protocol in Chapter~\ref{ch:evaluation}.
+
+\begin{table}[htbp]\centering\small
+\caption{Implementation status at the report checkpoint}
+\begin{tabularx}{\textwidth}{Y P{31mm}Y}
+\toprule\textbf{Capability} & \textbf{Status} & \textbf{Evidence or next gate}\\\midrule
+Static manifest diagnosis & Implemented & Fixed workflow and tests\\
+Scoped report access & Implemented foundation & Adverse path and overwrite checks\\
+SQLite task records & Implemented foundation & Transition persistence tests\\
+Debian foundation archive & Built and checked & Extraction smoke test\\
+Model driven plans & Planned & Gateway and schema tests\\
+Linux worker sandbox & Planned & Profile and denial tests\\
+Native Qt application & Planned & Desktop workflow tests\\
+Calendar connector & Planned & Sandbox account integration tests\\
+Bootable NEXOS ISO & Planned & Live and installed VM qualification\\\bottomrule
+\end{tabularx}\end{table}
+
+\section{Foundation Package}
+The package \texttt{nexos-engine-foundation} version 0.1.0 has been built as an architecture independent Debian archive. It installs the Python foundation and a launcher and declares its Python dependency. A smoke test checks the archive digest, extracts its contents into a temporary directory, invokes the packaged version and runs the fixture workflow.
+
+Extraction testing avoids confusing a valid archive with a qualified system installation. Clean install, upgrade, removal, desktop registration and service lifecycle tests are still required for final packages. The foundation archive does not contain a model, full desktop interface or complete operating system.
+
+\section{Reproducible Commands}
+The following commands describe the current source workflow on a suitable Python 3.12 environment. The bundled example is static metadata and does not need dependency installation.
+\begin{lstlisting}[caption={Current foundation workflow}]
+python3 tools/run_nexos.py doctor --workspace .
+python3 tools/run_nexos.py diagnose \
+  --project examples/demo-project \
+  --output .nexos/reports \
+  --state .nexos/state.sqlite3
+python3 -m unittest discover -s tests -v
+
+# On a qualified Linux environment with dpkg-deb:
+python3 tools/build_foundation_deb.py
+python3 tools/check_foundation_package.py
+\end{lstlisting}
+
+Results should be saved with the source revision and environment details. A repeat run may create a different task identifier and report filename while preserving the expected semantic findings. Reproducibility therefore compares specified properties and recorded inputs, rather than assuming every generated byte is identical.

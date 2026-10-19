@@ -1,0 +1,44 @@
+\frontchapter{Declaration}
+We declare that this project report, entitled \emph{NEXOS AI Powered Agentic Operating System}, presents our proposed design and the implementation work identified in the report. The ideas, methods and documentation taken from other sources are acknowledged through citations and references. We have distinguished completed work from proposed work and have not represented planned capabilities, illustrative interfaces or evaluation targets as measured results.
+
+We understand that academic integrity requires accurate attribution, reproducible evidence and truthful reporting of project progress. The architectural diagrams and interface concepts prepared for this report communicate the NEXOS design; they do not constitute evidence that all depicted components have been implemented.
+
+\vspace{18mm}
+\begin{tabularx}{\textwidth}{Y l}
+\textbf{Project group member} & \textbf{Signature}\\[7mm]
+Sandesh Brahmane & \rule{45mm}{0.4pt}\\[7mm]
+Omkar Sonawane & \rule{45mm}{0.4pt}\\[7mm]
+Mahesh Patil & \rule{45mm}{0.4pt}\\[7mm]
+Sarvesh Mane & \rule{45mm}{0.4pt}
+\end{tabularx}
+\vfill
+\noindent Date: \rule{35mm}{0.4pt}\hfill Place: \rule{45mm}{0.4pt}
+\clearpage
+\frontchapter{Acknowledgements}
+We thank Smt. Indira Gandhi College of Engineering, Ghansoli, for the academic environment and facilities supporting this major project. We acknowledge our supervisor, Dr. Madhu Nashipudimath, for guidance in defining the project scope, organizing the technical work and developing the report.
+
+We thank the Department of CSE IoT and Cyber Security including Blockchain, its faculty members and the project review panel for their guidance and feedback. Their emphasis on clear objectives, sound engineering practice and evidence based evaluation has helped shape the direction of NEXOS.
+
+We also acknowledge the researchers and open source communities whose work provides the foundations for this project. Ubuntu, the Linux ecosystem, Python, Qt, SQLite, Ollama and the cited agent research enable the investigation of an integrated workstation automation system within the resources of an undergraduate project.
+
+\vspace{15mm}
+\begin{flushright}
+Sandesh Brahmane\\Omkar Sonawane\\Mahesh Patil\\Sarvesh Mane
+\end{flushright}
+\clearpage
+\frontchapter{Abstract}
+NEXOS is a proposed AI assisted Linux distribution for bounded and verifiable workstation automation. The project integrates a native desktop assistant, a local task engine and model inference with an existing Ubuntu 24.04 LTS operating system. Its purpose is to convert selected natural language requests into observable outcomes while keeping execution subject to explicit permissions, typed tool contracts and independent result checks. The project develops application and distribution integration in user space and reuses the upstream Linux kernel, drivers, networking and desktop infrastructure.
+
+The proposed architecture contains a Qt interface, a Python background service, a model gateway, a dependency aware scheduler, specialist agent roles, a permission broker, isolated tool workers and a SQLite state store. A model proposes structured actions; deterministic software validates and authorizes them. Local tools operate on granted resources, while external service actions use dedicated connectors and account authorization. Verification compares the resulting artifacts or service state with task specific postconditions before success is reported.
+
+An initial implementation provides static inspection of selected Python and Node.js manifests, scoped report creation, hash based evidence checks and persistent task records. Ten foundation tests have passed on Windows and Ubuntu WSL, and a foundation Debian package has been built and checked through extraction. Natural language planning, the native desktop, Linux worker isolation and the bootable distribution remain implementation milestones. These early checks do not establish end to end agent accuracy or complete system security.
+
+The planned deliverable is a customized Ubuntu ISO containing the NEXOS software and first run configuration. Evaluation will measure verified task completion, permission enforcement, latency, resource use, recovery and clean installation behavior. The expected contribution is a reproducible integration and evaluation approach for a small set of useful workstation tasks on constrained student hardware.
+
+\noindent\textbf{Keywords:} agentic systems, Linux distribution, large language models, capability control, task orchestration, outcome verification, ISO packaging.
+\clearpage
+\frontchapter{Abbreviations and Notation}
+\begin{longtable}{P{25mm}P{115mm}}
+\toprule\textbf{Term} & \textbf{Meaning}\\\midrule\endhead
+AI & Artificial intelligence\\API & Application programming interface\\CPU & Central processing unit\\DAG & Directed acyclic graph\\DFD & Data flow diagram\\FTS5 & SQLite full text search extension version 5\\GPU & Graphics processing unit\\IPC & Interprocess communication\\ISO & Bootable optical disc image used as installation media\\JSON & JavaScript Object Notation\\LLM & Large language model\\LTS & Long term support\\OAuth & Authorization framework used by external service connectors\\QML & Declarative interface language used by Qt Quick\\RAM & Random access memory\\SHA256 & Secure Hash Algorithm producing a 256 bit digest\\TCB & Trusted computing base\\UEFI & Unified Extensible Firmware Interface\\VM & Virtual machine\\WSL & Windows Subsystem for Linux\\$G=(V,E)$ & Task graph with steps $V$ and dependency edges $E$\\$C$ & Set of capabilities granted to a task\\$P_i$ & Postconditions required for step $i$\\\bottomrule
+\end{longtable}

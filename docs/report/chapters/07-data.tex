@@ -1,0 +1,51 @@
+\chapter{Data Management and Memory}
+\section{Persistence Objectives}
+Persistent state allows the engine to explain what happened, identify unfinished work and retain evidence after the interface closes. It must distinguish the task definition from its execution attempts. A retry is a new attempt with a relationship to the same step, rather than an overwrite that hides the earlier failure.
+
+SQLite is selected for the initial single machine deployment because it provides transactions and a local file based database with a small operational footprint. The database schema and migration version are part of the application release. A schema upgrade should be tested against a backup of representative state and should fail visibly when incompatible data is encountered.
+
+\section{Proposed Data Model}
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=12mm]
+\node[box,text width=37mm] (task) {TASK\\id, goal, status, budget};
+\node[box,right=16mm of task,text width=37mm] (step) {STEP\\id, task id, tool, deps};
+\node[box,below=of task,text width=37mm] (event) {EVENT\\sequence, time, state};
+\node[box,below=of step,text width=37mm] (attempt) {ATTEMPT\\step id, outcome, timing};
+\node[box,below=of event,text width=37mm] (grant) {GRANT\\action digest, expiry};
+\node[box,below=of attempt,text width=37mm] (artifact) {ARTIFACT\\path, digest, provenance};
+\draw[flow] (task)--node[labeltext,above]{1 : many}(step);
+\draw[flow] (task)--node[labeltext,left]{1 : many}(event);
+\draw[flow] (step)--node[labeltext,right]{1 : many}(attempt);
+\draw[flow] (attempt)--node[labeltext,right]{1 : many}(artifact);
+\draw[flow] (task.west)--++(-8mm,0)|-(grant.west);
+\end{tikzpicture}
+\caption{Proposed logical data model. The foundation currently implements task and event records, not every entity shown.}\label{fig:data}
+\end{figure}
+
+Task records hold the normalized request, current status and configuration identity. Step records hold tool versions, dependencies and declared resources. Attempt records hold dispatch and completion information. Events describe transitions and observations in order. Artifacts identify outputs and their digests; they do not require placing every large output directly inside SQLite. Approval records bind concrete actions to user decisions.
+
+An evidence path must be resolved under an application controlled artifact root or explicitly granted destination. A database entry alone is not sufficient proof that a file still exists or has remained unchanged. The result viewer should check artifact availability and flag a digest mismatch rather than silently showing stale evidence as current.
+
+\section{Four Memory Roles}
+\textbf{Working memory} is the active context for a task: normalized inputs, recent observations and the current plan. It is bounded by a context budget and should not accumulate entire repositories.
+
+\textbf{Episodic memory} records past tasks, attempts and outcomes. It supports history, debugging and later comparison of recurring failures. A short summary should link to the original evidence instead of replacing it.
+
+\textbf{Semantic memory} is searchable information about granted projects and documents. Initially, FTS5 supplies token based text retrieval. Semantic vector similarity would require an embedding model, vector representation and a retrieval implementation; it is not provided merely by enabling FTS5.
+
+\textbf{Procedural memory} contains reviewed reusable workflows, tool templates and applicable preconditions. A successful one time sequence becomes reusable only after its assumptions are made explicit. A remembered command must still be registered, authorized and verified when used again.
+
+\section{Indexing and Provenance}
+The proposed indexer enumerates only selected roots, applies file type and size limits, and stores source identifiers with modification times and content digests. Each chunk should carry enough provenance to locate the original material. Index updates should be incremental so a small change does not require processing the complete workspace.
+
+Retrieval filters by current capabilities before returning content to the model. Revoking a root should remove or disable its derived entries, including summaries and embeddings if present. A retrieved result is quoted or summarized as source material and never treated as a privileged instruction. These rules prevent a useful memory feature from becoming an unintended route around resource permissions.
+
+\section{Recovery Semantics}
+When the daemon restarts, it reads incomplete attempts and classifies them by adapter behavior. Read only work can often be repeated. A file creation can be reconciled by checking its recorded destination and identity. A remote write may require a provider lookup using the stored request identifier. If its outcome cannot be determined, the task enters a needs attention state.
+
+The database transaction that records an attempt cannot atomically commit an external service action. The design therefore aims for explicit reconciliation and controlled retries, not a universal exactly once guarantee. Each adapter documents its retry contract and duplicate prevention strategy. Crash injection tests must cover the intervals before dispatch, after dispatch and before persistence of the result.
+
+\section{Retention and Backup}
+Task history and artifacts should have configurable retention rules, with an option to preserve selected reports. Deleting a task should account for related summaries and retrieval entries, while avoiding deletion of user files merely referenced by the task. Backups should use a consistent database snapshot and include required artifact metadata.
+
+The initial project does not require cloud synchronization. Introducing synchronization would add identity, conflict resolution and credential protection requirements. Keeping storage local reduces the first release's operational scope and makes the evaluation easier to reproduce.

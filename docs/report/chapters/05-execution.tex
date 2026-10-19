@@ -1,0 +1,72 @@
+\chapter{Task Planning and Execution}
+\section{Intent Resolution and Task Contracts}
+A task begins with a goal and the resources to which that goal applies. For example, a diagnosis request needs a project root and an output directory. A meeting request additionally needs a calendar, start time, duration, timezone and attendees. The engine should resolve essential ambiguity before proposing a side effect. It should not guess an email address or silently interpret a relative date in an unknown timezone.
+
+The proposed task contract contains a task identifier, goal, normalized inputs, capability references, deadline and budget. A model can help classify the request and suggest a supported workflow. The engine checks the result against a schema and rejects fields or tools that are not part of the contract. Bounded retries may repair formatting errors; they do not permit the model to invent new adapter capabilities.
+
+\section{Plan Representation and Validation}
+A plan is represented as a directed graph $G=(V,E)$ in which each node identifies a registered tool and each edge expresses a prerequisite. A step includes typed arguments, declared read and write resources, a timeout and required postconditions. An edge $u\rightarrow v$ means that step $v$ may start only after step $u$ completes according to its dependency policy.
+
+For the prototype, the plan must be finite, acyclic and small enough for review. The current foundation accepts at most twelve steps and only three tool identifiers. The proposed planner may use a larger registry later, but limits should remain explicit. Validation rejects duplicate step identifiers, missing dependencies, unsupported tools and cycles before any action is dispatched.
+
+Topological validation can be implemented with indegree counts and a ready queue. Its graph traversal cost is $O(|V|+|E|)$, excluding argument and policy checks. A valid graph is necessary but insufficient: a plan may still be semantically wrong, overbroad or unsupported by the user's intent. Those conditions require task checks, capability checks and outcome verification.
+
+\section{Scheduling and Resource Admission}
+The proposed scheduler admits a step when all required predecessors have succeeded, its resources are available and its execution budget remains valid. The initial policy favors simple FIFO ordering with a small concurrency limit. Later priority classes may distinguish interactive tasks from background indexing, with aging to prevent starvation.
+
+Read operations on the same immutable snapshot can run concurrently. Conflicting writes require serialization or explicit locking. Locks should be acquired in a stable order to reduce deadlock risk. Model inference is separately queued because it may consume most of the guest's memory. Specialist roles do not justify loading several large models at once.
+
+Cooperative preemption means pausing at documented safe boundaries or cancelling a worker and recording its observed state. It does not imply transparent suspension of arbitrary external effects. A remote event creation may complete even if the local request times out; that case requires reconciliation rather than an immediate duplicate retry.
+
+\section{Task State Model}
+The complete design uses states for intake, validation, planning, approval, execution, verification and terminal outcomes. A transition is recorded with its task identifier, timestamp and reason. The implemented foundation currently exercises a smaller path: received, planned, running, verifying and succeeded, with failed outcomes recorded on errors.
+
+\reportfigure{nexos-task-workflow.png}{1}{Intended request, authorization, execution and verification workflow.}{fig:taskflow}
+
+Waiting for approval is not the same as running. Cancellation requested is not the same as cancelled. A task with an unknown external effect should be marked for reconciliation rather than reported as a clean failure or success. These distinctions prevent a conversational summary from concealing an unresolved operation.
+
+\section{Execution Algorithm}
+The following pseudocode specifies the intended execution loop. It is an architectural algorithm; the current foundation implements a fixed diagnosis sequence rather than this complete concurrent scheduler.
+
+\begin{lstlisting}[caption={Proposed bounded task execution algorithm}]
+validate_task(task)
+plan = propose_or_select_plan(task)
+validate_schema_registry_and_dag(plan)
+persist(plan, state="PLANNED")
+while unfinished_steps(plan):
+    enforce_task_budget(task)
+    ready = dependency_ready_steps(plan)
+    for step in admit_with_resource_limits(ready):
+        action = normalize_action(step)
+        decision = broker.authorize(action, task.grants)
+        if decision.requires_approval:
+            persist_waiting_and_present_preview(action)
+            continue
+        if not decision.allowed:
+            fail_step_without_dispatch(step)
+            continue
+        record_attempt_before_dispatch(step)
+        observation = execute_registered_adapter(action)
+        evidence = verify_postconditions(step, observation)
+        persist_attempt_and_evidence(step, evidence)
+    if no_progress_possible():
+        wait_for_decision_or_end_with_specific_reason()
+return aggregate_verified_outcome(plan)
+\end{lstlisting}
+
+The record before dispatch narrows the uncertainty window after a crash. It does not create an atomic transaction across SQLite and an external provider. Each adapter therefore declares whether it is read only, idempotent, safely retryable or requires reconciliation. Retry policy is attached to the operation, not inferred from a generic HTTP error alone.
+
+\section{Worked Diagnosis Workflow}
+The user grants a project directory and requests a report. The file adapter identifies supported manifests within that root. The diagnostics adapter parses metadata without importing modules or running package scripts. The report adapter writes a new file in the granted output directory. The verifier reopens the report, checks its identity and digest, and confirms that source manifests have not changed during the operation.
+
+A missing manifest produces a clear unsupported input result. Malformed JSON or TOML is reported as an input failure. An existing output filename is not overwritten by the current foundation. A source file changed during inspection causes verification failure, because the report would otherwise combine observations from different states. These outcomes are useful even without a model and establish a deterministic reference for later natural language requests.
+
+\section{Worked Calendar Workflow}
+The proposed connector normalizes the date and timezone, checks the selected calendar where authorization permits, and presents the exact event details. The user reviews the title, time, duration, attendees and notification behavior. The approved operation is executed through Google Calendar APIs, including conference data creation when supported by the account \cite{calendar}.
+
+The connector stores a stable request identity for retry handling and reads back the event. It verifies the returned time interval, attendee list and conference state. If meeting link generation is still pending, the task remains incomplete until a bounded follow up check resolves it or a specific limitation is reported. The browser is not required merely to navigate to a search engine; a documented API is the preferred integration for this workflow.
+
+\section{Verification and Partial Results}
+Let $P_i$ denote the required postconditions for step $i$. A step succeeds only when each required predicate is satisfied by accepted evidence. The task outcome aggregates required step outcomes; optional outputs may be reported separately. An artifact's hash proves equality with expected bytes, not the truth of every statement in those bytes.
+
+For this reason, NEXOS uses domain specific verifiers. A file move check compares source and destination state; a report check validates content and source provenance; a calendar check inspects provider state. Partial output can be preserved for diagnosis, but must be labeled with its failed or incomplete verification state. The user should never need to infer failure from an apparently successful final message.

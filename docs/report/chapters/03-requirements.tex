@@ -1,0 +1,52 @@
+\chapter{Requirements and Feasibility}
+\section{Stakeholders and Operating Assumptions}
+The primary stakeholder is the logged in workstation user who owns the task and grants access to project resources. Developers maintain tool implementations, schemas and tests. Project reviewers require a clear account of what was built, how it was evaluated and which claims remain untested. External service providers control account authorization, API availability and service specific restrictions.
+
+The prototype assumes a single interactive user session on a supported Ubuntu installation. The host kernel and administrator are trusted. Inputs such as repository files, web pages, model output and retrieved notes are treated as untrusted task data. Network availability is optional for supported local tasks, but required for external connectors and model downloads. A cloud inference mode requires explicit selection and a description of the data sent outside the machine.
+
+\section{Functional Requirements}
+\begin{longtable}{P{16mm}P{79mm}P{43mm}}
+\caption{Functional requirements and acceptance evidence}\label{tab:functional}\\
+\toprule\textbf{ID} & \textbf{Requirement} & \textbf{Acceptance evidence}\\\midrule\endfirsthead
+\toprule\textbf{ID} & \textbf{Requirement} & \textbf{Acceptance evidence}\\\midrule\endhead
+FR01 & Accept a task and resolve essential missing inputs. & Concrete goal and resource scope.\\
+FR02 & Produce a bounded valid plan using registered tools. & Invalid tools and dependency graphs rejected.\\
+FR03 & Authorize each action against task capabilities. & Denied actions have no forbidden effect.\\
+FR04 & Execute tools with deadlines and output limits. & Timeout and cancellation records.\\
+FR05 & Verify postconditions before reporting success. & Artifact or service state checks pass.\\
+FR06 & Persist task states and evidence references. & History survives restart.\\
+FR07 & Preview sensitive operations before approval. & Grant matches exact action parameters.\\
+FR08 & Inspect Python and Node.js manifests. & Findings match fixture metadata.\\
+FR09 & Create and check a diagnosis report. & Identity and evidence digests match.\\
+FR10 & Support local model inference. & Readiness and model errors handled.\\
+FR11 & Integrate with the desktop and user session. & Native application starts in a clean guest.\\
+FR12 & Deliver bootable installation media. & Live boot, install and reboot pass.\\\bottomrule
+\end{longtable}
+
+FR08 and FR09 have a foundation implementation. Other requirements are either partially represented by that foundation or remain planned. A completed command line fixture does not satisfy the desktop, model or ISO requirements.
+
+\section{Nonfunctional Requirements}
+\textbf{Correctness and traceability.} Every result must identify the task, adapter and evidence used to reach its status. Error messages should distinguish invalid input, denied authority, unavailable infrastructure and failed postconditions. The verifier must not accept a model's assertion as the only evidence of success.
+
+\textbf{Resource discipline.} The initial configuration should run one inference request at a time and cap tool concurrency. Model choice, context length and VM allocation will be measured together. Resource estimates are planning assumptions until benchmarked on the actual laptop.
+
+\textbf{Usability.} The interface must show progress, the next required decision and an accessible cancellation control. Users should be able to distinguish a proposed action from one already executed. Essential status must be conveyed in text as well as color.
+
+\textbf{Maintainability and privacy.} Tool contracts, profiles, database migrations and image inputs should be version controlled. Project indexing is limited to granted roots. Credentials belong in the desktop keyring. Logs exclude tokens and unnecessary document contents. Retention and deletion controls apply to source records and derived retrieval entries.
+
+\section{Hardware Feasibility}
+The available development laptop has 16 GB RAM and an NVIDIA RTX 3050. Its dedicated GPU memory and CPU details have not been confirmed. The initial user supplied free space was approximately 60 GB on drive D; a later development check observed approximately 94.3 GiB free. These values are dated observations, not guaranteed capacity at build time.
+
+A development VM can begin with approximately 6 GB RAM and a small number of virtual CPUs, provided host responsiveness is monitored. This is a provisional allocation, not a benchmarked minimum. A small quantized model should be selected only after testing latency, memory use and valid tool output. The presence of the host RTX 3050 does not establish CUDA availability inside an ordinary VMware guest. CPU inference or an explicitly selected remote provider remains a fallback.
+
+ISO customization may temporarily retain the source image, extracted filesystem, package caches, build output and a test VM. Approximately 100 to 120 GB of free build workspace is a planning allowance for convenient iteration. A smaller workspace can support early software work if images and snapshots are carefully limited. Additional storage is useful for later image work, but no hardware purchase is required to review the current foundation.
+
+\section{Software Feasibility and Selection}
+Ubuntu 24.04 LTS is the selected distribution base. GNOME supplies the established desktop session. Qt 6 with PySide6 and QML provides the proposed native assistant \cite{qt}. Python 3.12 provides the engine and adapters. Ollama supplies a local inference interface \cite{ollama}; it does not implement NEXOS permissions or agent orchestration. SQLite provides transactional local storage, while FTS5 supplies keyword retrieval \cite{fts5}.
+
+Bubblewrap is selected as a low level mechanism for constructing worker environments. Its maintainers place responsibility for the security policy on the application configuring it \cite{bubblewrap}. Installing Bubblewrap is only one step; the intended namespace, mount and process behavior must be tested. Cubic is the proposed customization tool for the initial Ubuntu ISO \cite{cubic}.
+
+\section{Constraints and Tradeoffs}
+A small tool registry limits task breadth but makes authorization and verification tractable. Native desktop integration adds packaging work but supports the desired operating system experience. Local inference improves control over data location but may increase latency on constrained hardware. A cloud option can improve model availability while introducing connectivity, cost and disclosure considerations.
+
+The project should resolve these tradeoffs through measurements and explicit release scope. Adding more agent names, frameworks or databases does not itself improve completion quality. The first release prioritizes complete workflows, predictable failure handling and a reproducible installation over the number of advertised features.
